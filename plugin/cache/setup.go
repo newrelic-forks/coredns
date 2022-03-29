@@ -180,6 +180,16 @@ func cacheParse(c *caddy.Controller) (*Cache, error) {
 					}
 					ca.staleUpTo = d
 				}
+			case "default_udp_buf_size":
+				args := c.RemainingArgs()
+				if len(args) > 1 {
+					return nil, c.ArgErr()
+				}
+				num, err := strconv.Atoi(args[0])
+				if err != nil {
+					return nil, err
+				}
+				ca.defaultUDPBufSize = uint16(num)
 			default:
 				return nil, c.ArgErr()
 			}
