@@ -72,7 +72,7 @@ func (c *Cache) doPrefetch(ctx context.Context, state request.Request, cw *Respo
 
 func (c *Cache) doRefresh(ctx context.Context, state request.Request, cw *ResponseWriter) (int, error) {
 	if !state.Do() {
-		setDo(state.Req)
+		c.setDo(state.Req)
 	}
 	return plugin.NextOrFailure(c.Name(), c.Next, ctx, cw, state.Req)
 }
@@ -141,20 +141,16 @@ func (c *Cache) exists(state request.Request) *item {
 }
 
 // setDo sets the DO bit and UDP buffer size in the message m.
-func setDo(m *dns.Msg) {
+func (c *Cache) setDo(m *dns.Msg) {
 	o := m.IsEdns0()
 	if o != nil {
 		o.SetDo()
-		o.SetUDPSize(defaultUDPBufSize)
+		o.SetUDPSize(c.defaultUDPBufSize)
 		return
 	}
 
 	o = &dns.OPT{Hdr: dns.RR_Header{Name: ".", Rrtype: dns.TypeOPT}}
 	o.SetDo()
-	o.SetUDPSize(defaultUDPBufSize)
+	o.SetUDPSize(c.defaultUDPBufSize)
 	m.Extra = append(m.Extra, o)
 }
-
-// defaultUDPBufsize is the bufsize the cache plugin uses on outgoing requests that don't
-// have an OPT RR.
-const defaultUDPBufSize = 2048
